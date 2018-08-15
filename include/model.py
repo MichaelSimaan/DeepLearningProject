@@ -20,17 +20,23 @@ def model():
         # Convolution Layer with 32 filters and a kernel size of 5
         conv1 = tf.layers.conv2d(x_image, 32, 5, activation=tf.nn.relu)
         # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
-        conv1 = tf.layers.max_pooling2d(conv1, 2, 2)
+        conv1 = tf.layers.average_pooling2d(conv1, 2, 2)
 
     with tf.variable_scope('conv2') as scope:
         # Convolution Layer with 64 filters and a kernel size of 3
         conv2 = tf.layers.conv2d(conv1, 64, 3, activation=tf.nn.relu)
         # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
-        conv2 = tf.layers.max_pooling2d(conv2, 2, 2)
+        conv2 = tf.layers.average_pooling2d(conv2, 2, 2)
+
+    with tf.variable_scope('conv3') as scope:
+        # Convolution Layer with 64 filters and a kernel size of 3
+        conv3 = tf.layers.conv2d(conv2, 64, 3, activation=tf.nn.relu)
+        # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
+        conv3 = tf.layers.average_pooling2d(conv3, 2, 2)
 
     with tf.variable_scope('Flaten_and_dense') as scope:
         # Flatten the data to a 1-D vector for the fully connected layer
-        fc1 = tf.contrib.layers.flatten(conv2)
+        fc1 = tf.contrib.layers.flatten(conv3)
 
         # Fully connected layer (in tf contrib folder for now)
         fc1 = tf.layers.dense(fc1, 1024)
