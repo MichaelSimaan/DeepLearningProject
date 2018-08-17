@@ -27,11 +27,11 @@ def model():
         conv1 = tf.layers.batch_normalization(conv1, training=True)
         conv1 = tf.nn.relu(conv1)
         # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
-        conv1 = tf.layers.max_pooling2d(conv1, 2, 2)
+        conv1 = tf.layers.average_pooling2d(conv1, 2, 2)
 
     with tf.variable_scope('conv2') as scope:
         # Convolution Layer with 64 filters and a kernel size of 3
-        conv2 = tf.layers.conv2d(conv1, 64, (3, 3), use_bias=False, padding='SAME')
+        conv2 = tf.layers.conv2d(conv1, 128, (3, 3), use_bias=False, padding='SAME')
         conv2 = tf.layers.batch_normalization(conv2, training=True)
         conv2 = tf.nn.relu(conv2)
         # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
@@ -39,7 +39,7 @@ def model():
 
     with tf.variable_scope('conv3') as scope:
         # Convolution Layer with 64 filters and a kernel size of 3
-        conv3 = tf.layers.conv2d(conv2, 128, (3, 3), use_bias=False, padding='SAME')
+        conv3 = tf.layers.conv2d(conv2, 256, (3, 3), use_bias=False, padding='SAME')
         conv3 = tf.layers.batch_normalization(conv3, training=True)
         conv3 = tf.nn.relu(conv3)
         # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
@@ -47,7 +47,7 @@ def model():
 
     with tf.variable_scope('conv4') as scope:
         # Convolution Layer with 64 filters and a kernel size of 3
-        conv4 = tf.layers.conv2d(conv3, 256, (3, 3), use_bias=False, padding='SAME')
+        conv4 = tf.layers.conv2d(conv3, 728, (3, 3), use_bias=False, padding='SAME')
         conv4 = tf.layers.batch_normalization(conv4, training=True)
         conv4 = tf.nn.relu(conv4)
         # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
