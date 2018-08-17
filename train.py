@@ -15,7 +15,7 @@ global_accuracy = 0
 
 
 # PARAMS
-_BATCH_SIZE = 128
+_BATCH_SIZE = 256
 _EPOCH = 60
 _SAVE_PATH = "./tensorboard/cifar-10-v1.0.0/"
 
@@ -82,7 +82,8 @@ def test_and_save(_global_step, epoch):
 
     i = 0
     predicted_class = np.zeros(shape=len(test_x), dtype=np.int)
-    while i < len(test_x):
+    while i < len(test_x
+                  ):
         j = min(i + _BATCH_SIZE, len(test_x))
         batch_xs = test_x[i:j, :]
         batch_ys = test_y[i:j, :]
@@ -96,8 +97,8 @@ def test_and_save(_global_step, epoch):
     acc = correct.mean()*100
     correct_numbers = correct.sum()
 
-    mes = "\nEpoch {} - accuracy: {:.2f}% ({}/{})"
-    print(mes.format((epoch+1), acc, correct_numbers, len(test_x)))
+    mes = "\nEpoch {} - accuracy: {:.2f}% ({}/{}). Global max accuracy is {:.2f}%"
+    print(mes.format((epoch+1), acc, correct_numbers, len(test_x), global_accuracy))
 
     if global_accuracy != 0 and global_accuracy < acc:
 
