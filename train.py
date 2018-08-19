@@ -5,12 +5,12 @@ import math
 
 
 from include.data import get_data_set
-from include.model import model, lr
+from include.model import Model
 
-
+model = Model()
 train_x, train_y = get_data_set("train")
 test_x, test_y = get_data_set("test")
-x, y, output, y_pred_cls, global_step, learning_rate = model()
+x, y, output, y_pred_cls, global_step, learning_rate = model.getModel()
 global_accuracy = 0
 
 
@@ -25,7 +25,7 @@ loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, 
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                    beta1=0.9,
                                    beta2=0.999,
-                                   epsilon=1e-08).minimize(loss, global_step=global_step)
+                                   epsilon=1e-08).minimize(loss, global_step=global_step,)
 
 
 # PREDICTION AND ACCURACY CALCULATION
@@ -49,6 +49,8 @@ except ValueError:
     print("\nFailed to restore checkpoint. Initializing variables instead.")
     sess.run(tf.global_variables_initializer())
 
+model.var_list = tf.trainable_variables()
+model.allvars = tf.trainable_variables()
 
 def train(epoch):
     batch_size = int(math.ceil(len(train_x) / _BATCH_SIZE))
@@ -61,7 +63,7 @@ def train(epoch):
         start_time = time()
         i_global, _, batch_loss, batch_acc = sess.run(
             [global_step, optimizer, loss, accuracy],
-            feed_dict={x: batch_xs, y: batch_ys, learning_rate: lr(epoch)})
+            feed_dict={x: batch_xs, y: batch_ys, learning_rate: model.lr(epoch)})
         duration = time() - start_time
 
         if s % 10 == 0:
@@ -123,6 +125,8 @@ def main():
     for i in range(_EPOCH):
         print("\nEpoch: {0}/{1}\n".format((i+1), _EPOCH))
         train(i)
+
+
 
 
 if __name__ == "__main__":
