@@ -22,11 +22,10 @@ _SAVE_PATH = "./tensorboard/cifar-10-v1.0.0/"
 
 # LOSS AND OPTIMIZER
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
+model.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                    beta1=0.9,
                                    beta2=0.999,
                                    epsilon=1e-08).minimize(loss, global_step=global_step,)
-
 
 # PREDICTION AND ACCURACY CALCULATION
 correct_prediction = tf.equal(y_pred_cls, tf.argmax(y, axis=1))
@@ -62,7 +61,7 @@ def train(epoch):
 
         start_time = time()
         i_global, _, batch_loss, batch_acc = sess.run(
-            [global_step, optimizer, loss, accuracy],
+            [global_step, model.optimizer, loss, accuracy],
             feed_dict={x: batch_xs, y: batch_ys, learning_rate: model.lr(epoch)})
         duration = time() - start_time
 
@@ -91,7 +90,7 @@ def test_and_save(_global_step, epoch):
         batch_ys = test_y[i:j, :]
         predicted_class[i:j] = sess.run(
             y_pred_cls,
-            feed_dict={x: batch_xs, y: batch_ys, learning_rate: lr(epoch)}
+            feed_dict={x: batch_xs, y: batch_ys, learning_rate: model.lr(epoch)}
         )
         i = j
 
