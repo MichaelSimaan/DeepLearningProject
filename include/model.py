@@ -4,7 +4,7 @@ class Model:
     def __init__(self):
         self.var_list = []
         self.allvars = []
-
+        self.optimizer = None
 
     def getModel(self):
         _IMAGE_SIZE = 32
@@ -71,7 +71,6 @@ class Model:
             softmax = tf.layers.dense(fc1, n_classes)
         y_pred_cls = tf.argmax(softmax, axis=1)
         return x, y, softmax, y_pred_cls, global_step, learning_rate
-
 
     def lr(self, epoch):
         learning_rate = 1e-3
