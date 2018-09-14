@@ -21,12 +21,18 @@ _SAVE_PATH = "./tensorboard/cifar-10-v1.0.0/"
 
 
 # LOSS AND OPTIMIZER
-loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
+#loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
+loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
+loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[-1], labels=y[-1])
+new_loss = -1*(loss2/loss)
 model.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                    beta1=0.9,
                                    beta2=0.999,
                                    epsilon=1e-08).minimize(loss, global_step=global_step,)
-
+model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
+                                   beta1=0.9,
+                                   beta2=0.999,
+                                   epsilon=1e-08).minimize(new_loss, global_step=global_step,)
 # PREDICTION AND ACCURACY CALCULATION
 correct_prediction = tf.equal(y_pred_cls, tf.argmax(y, axis=1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -37,7 +43,6 @@ merged = tf.summary.merge_all()
 saver = tf.train.Saver()
 sess = tf.Session()
 train_writer = tf.summary.FileWriter(_SAVE_PATH, sess.graph)
-
 
 try:
     print("\nTrying to restore last checkpoint ...")
@@ -51,6 +56,14 @@ except ValueError:
 model.var_list = tf.trainable_variables()
 model.allvars = tf.trainable_variables()
 
+
+
+
+
+
+
+
+
 def train(epoch):
     batch_size = int(math.ceil(len(train_x) / _BATCH_SIZE))
     i_global = 0
@@ -59,9 +72,20 @@ def train(epoch):
         batch_xs = train_x[s*_BATCH_SIZE: (s+1)*_BATCH_SIZE]
         batch_ys = train_y[s*_BATCH_SIZE: (s+1)*_BATCH_SIZE]
 
+
+        batch_xs_List = np.ndarray.tolist(batch_xs)
+        train_x_List = np.ndarray.tolist(train_x[0])
+        batch_xs_List.append(train_x_List)
+        batch_xs = np.array(batch_xs_List)
+
+        batch_ys_List = np.ndarray.tolist(batch_ys)
+        train_y_List = np.ndarray.tolist(train_y[0])
+        batch_ys_List.append(train_y_List)
+        batch_ys = np.array(batch_ys_List)
+
         start_time = time()
         i_global, _, batch_loss, batch_acc = sess.run(
-            [global_step, model.optimizer, loss, accuracy],
+            [global_step, model.senoptimizer, new_loss, accuracy],
             feed_dict={x: batch_xs, y: batch_ys, learning_rate: model.lr(epoch)})
         duration = time() - start_time
 

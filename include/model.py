@@ -5,6 +5,8 @@ class Model:
         self.var_list = []
         self.allvars = []
         self.optimizer = None
+        self.senoptimizer = None
+
 
     def getModel(self):
         _IMAGE_SIZE = 32
@@ -68,7 +70,7 @@ class Model:
             fc1 = tf.layers.dropout(fc1, rate=dropout)
 
             # Output layer, class prediction
-            softmax = tf.layers.dense(fc1, n_classes)
+            softmax = tf.layers.dense(fc1, n_classes,name="test2")
         y_pred_cls = tf.argmax(softmax, axis=1)
         return x, y, softmax, y_pred_cls, global_step, learning_rate
 
@@ -86,15 +88,15 @@ class Model:
 
     def freeze(self, variable, name):
         tempList = []
-        varname = name + "/" + variable
+        varname = variable + "/" + name
         for var in self.var_list:
             if varname not in var.name:
                 tempList.append(var)
         self.var_list = tempList
 
-    def rest(self, variable, name):
+    def reset(self, variable, name):
         tempList = []
-        varname = name + "/" + variable
+        varname = variable + "/" + name
         for var in self.allvars:
             if var in self.var_list:
                 tempList.append(var)
