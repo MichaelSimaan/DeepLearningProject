@@ -58,7 +58,7 @@ model.allvars = tf.trainable_variables()
 
 
 
-
+#model.reset("conv1", "test", sess)
 
 
 

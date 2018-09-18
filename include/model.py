@@ -34,7 +34,7 @@ class Model:
             conv1 = tf.layers.batch_normalization(conv1, training=True)
             conv1 = tf.nn.relu(conv1)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
-            conv1 = tf.layers.average_pooling2d(conv1, 2, 2, name="test")
+            conv1 = tf.layers.average_pooling2d(conv1, 2, 2, name="test3")
 
         with tf.variable_scope('conv2') as scope:
             # Convolution Layer with 64 filters and a kernel size of 3
@@ -94,13 +94,8 @@ class Model:
                 tempList.append(var)
         self.var_list = tempList
 
-    def reset(self, variable, name):
-        tempList = []
+    def reset(self, variable, name, session):
         varname = variable + "/" + name
         for var in self.allvars:
-            if var in self.var_list:
-                tempList.append(var)
-                continue
-            if var not in self.var_list and varname in var.name:
-                tempList.append(var)
-        self.var_list = tempList
+            if varname in var.name:
+                session.run(var.initializer)
