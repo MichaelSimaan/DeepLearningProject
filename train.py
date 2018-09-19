@@ -64,7 +64,7 @@ model.allvars = tf.trainable_variables()
 
 
 
-def train(epoch):
+def train(epoch,xi):
     batch_size = int(math.ceil(len(train_x) / _BATCH_SIZE))
     i_global = 0
 
@@ -74,12 +74,12 @@ def train(epoch):
 
 
         batch_xs_List = np.ndarray.tolist(batch_xs)
-        train_x_List = np.ndarray.tolist(train_x[0])
+        train_x_List = np.ndarray.tolist(train_x[xi])
         batch_xs_List.append(train_x_List)
         batch_xs = np.array(batch_xs_List)
 
         batch_ys_List = np.ndarray.tolist(batch_ys)
-        train_y_List = np.ndarray.tolist(train_y[0])
+        train_y_List = np.ndarray.tolist(train_y[xi])
         batch_ys_List.append(train_y_List)
         batch_ys = np.array(batch_ys_List)
 
@@ -145,9 +145,19 @@ def test_and_save(_global_step, epoch):
 
 
 def main():
-    for i in range(_EPOCH):
-        print("\nEpoch: {0}/{1}\n".format((i+1), _EPOCH))
-        train(i)
+    for xi in range(len(train_x)):
+        loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[xi], labels=y[xi])
+        new_loss = -1 * (loss2 / loss)
+        model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
+                                                    beta1=0.9,
+                                                    beta2=0.999,
+                                                    epsilon=1e-08).minimize(new_loss, global_step=global_step, )
+        print("Xi= " + str(xi))
+
+        sess.run(tf.global_variables_initializer())
+        for i in range(_EPOCH):
+            print("\nEpoch: {0}/{1}\n".format((i+1), _EPOCH))
+            train(i,xi)
 
 
 
