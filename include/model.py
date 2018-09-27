@@ -30,16 +30,16 @@ class Model:
 
         with tf.variable_scope('conv1') as scope:
             # Convolution Layer with 32 filters and a kernel size of 5
-            conv1 = tf.layers.conv2d(x_image, 64, (3, 3), use_bias=False, padding='SAME', name="test", trainable=True)
-            conv1 = tf.layers.batch_normalization(conv1, training=True)
-            conv1 = tf.nn.relu(conv1)
+            conv1 = tf.layers.conv2d(x_image, 64, (3, 3), use_bias=False, padding='SAME', name="layer1", trainable=True)
+            conv1 = tf.layers.batch_normalization(conv1, training=True,name="layer2")
+            conv1 = tf.nn.relu(conv1,name="layer3")
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
-            conv1 = tf.layers.average_pooling2d(conv1, 2, 2, name="test3")
+            conv1 = tf.layers.average_pooling2d(conv1, 2, 2, name="layer4")
 
         with tf.variable_scope('conv2') as scope:
             # Convolution Layer with 64 filters and a kernel size of 3
-            conv2 = tf.layers.conv2d(conv1, 128, (3, 3), use_bias=False, padding='SAME')
-            conv2 = tf.layers.batch_normalization(conv2, training=True)
+            conv2 = tf.layers.conv2d(conv1, 128, (3, 3), use_bias=False, padding='SAME',name="layer4")
+            conv2 = tf.layers.batch_normalization(conv2, training=True,name="layer5")
             conv2 = tf.nn.relu(conv2)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
             conv2 = tf.layers.average_pooling2d(conv2, 2, 2)
@@ -70,7 +70,7 @@ class Model:
             fc1 = tf.layers.dropout(fc1, rate=dropout)
 
             # Output layer, class prediction
-            softmax = tf.layers.dense(fc1, n_classes,name="test2")
+            softmax = tf.layers.dense(fc1, n_classes,name="last")
         y_pred_cls = tf.argmax(softmax, axis=1)
         return x, y, softmax, y_pred_cls, global_step, learning_rate
 
@@ -91,6 +91,14 @@ class Model:
         varname = variable + "/" + name
         for var in self.var_list:
             if varname not in var.name:
+                tempList.append(var)
+        self.var_list = tempList
+
+    def freezeAllExcept(self, variable, name):
+        tempList = []
+        varname = variable + "/" + name
+        for var in self.var_list:
+            if varname in var.name:
                 tempList.append(var)
         self.var_list = tempList
 

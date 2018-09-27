@@ -58,7 +58,7 @@ model.allvars = tf.trainable_variables()
 
 
 
-#model.reset("conv1", "test", sess)
+model.freezeAllExcept("Flaten_and_dense","last")
 
 
 
@@ -145,14 +145,14 @@ def test_and_save(_global_step, epoch):
 
 
 def main():
-    for xi in range(len(train_x)):
+    for xi in range(20):
+        text_file = open("xi.txt", "w")
         loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[xi], labels=y[xi])
         new_loss = -1 * (loss2 / loss)
         model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                                     beta1=0.9,
                                                     beta2=0.999,
-                                                    epsilon=1e-08).minimize(new_loss, global_step=global_step, )
-        print("Xi= " + str(xi))
+                                                    epsilon=1e-08).minimize(new_loss, global_step=global_step)
 
         sess.run(tf.global_variables_initializer())
         for i in range(_EPOCH):
