@@ -60,7 +60,7 @@ model.allvars = tf.trainable_variables()
 
 model.freezeAllExcept("Flaten_and_dense","last")
 
-
+text_file=None
 
 
 
@@ -97,7 +97,7 @@ def train(epoch,xi):
             bar = '=' * filled_len + '>' + '-' * (bar_len - filled_len)
 
             msg = "Global step: {:>5} - [{}] {:>3}% - acc: {:.4f} - loss: {:.4f} - {:.1f} sample/sec"
-            print(msg.format(i_global, bar, percentage, batch_acc, batch_loss, _BATCH_SIZE / duration))
+            text_file.write(msg.format(i_global, bar, percentage, batch_acc, batch_loss, _BATCH_SIZE / duration))
 
     test_and_save(i_global, epoch)
 
@@ -123,7 +123,7 @@ def test_and_save(_global_step, epoch):
     correct_numbers = correct.sum()
 
     mes = "\nEpoch {} - accuracy: {:.2f}% ({}/{}). Global max accuracy is {:.2f}%"
-    print(mes.format((epoch+1), acc, correct_numbers, len(test_x), global_accuracy))
+    text_file.write(mes.format((epoch+1), acc, correct_numbers, len(test_x), global_accuracy))
 
     if global_accuracy != 0 and global_accuracy < acc:
 
@@ -135,13 +135,13 @@ def test_and_save(_global_step, epoch):
         saver.save(sess, save_path=_SAVE_PATH, global_step=_global_step)
 
         mes = "This epoch receive better accuracy: {:.2f} > {:.2f}. Saving session..."
-        print(mes.format(acc, global_accuracy))
+        text_file.write(mes.format(acc, global_accuracy))
         global_accuracy = acc
 
     elif global_accuracy == 0:
         global_accuracy = acc
 
-    print("###########################################################################################################")
+        text_file.write("###########################################################################################################")
 
 
 def main():
@@ -156,9 +156,9 @@ def main():
 
         sess.run(tf.global_variables_initializer())
         for i in range(_EPOCH):
-            print("\nEpoch: {0}/{1}\n".format((i+1), _EPOCH))
+            text_file.write("\nEpoch: {0}/{1}\n".format((i+1), _EPOCH))
             train(i,xi)
-
+    text_file.close()
 
 
 
