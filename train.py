@@ -60,8 +60,8 @@ model.var_list = tf.trainable_variables()
 model.allvars = tf.trainable_variables()
 
 
-
-#model.freezeAllExcept("conv4","layer4")
+if not firstRun:
+    model.freezeAllExcept("conv4","layer4")
 
 text_file=None
 
