@@ -5,12 +5,13 @@ import math
 
 
 from include.data import get_data_set
-from include.model import model, lr
+from include.model import Model
 
-
+firstRun = False
+model = Model()
 train_x, train_y = get_data_set("train")
 test_x, test_y = get_data_set("test")
-x, y, output, y_pred_cls, global_step, learning_rate = model()
+x, y, output, y_pred_cls, global_step, learning_rate = model.getModel()
 global_accuracy = 0
 
 
@@ -22,12 +23,19 @@ _SAVE_PATH = "./tensorboard/cifar-10-v1.0.0/"
 
 # LOSS AND OPTIMIZER
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
+model.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                    beta1=0.9,
                                    beta2=0.999,
                                    epsilon=1e-08).minimize(loss, global_step=global_step)
 
+# sum_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
+# loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[-1], labels=y[-1])
+# new_loss = -1*(loss2/sum_loss)
 
+# model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
+#                                    beta1=0.9,
+#                                    beta2=0.999,
+#                                    epsilon=1e-08).minimize(new_loss, global_step=global_step,)
 # PREDICTION AND ACCURACY CALCULATION
 correct_prediction = tf.equal(y_pred_cls, tf.argmax(y, axis=1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -39,7 +47,6 @@ saver = tf.train.Saver()
 sess = tf.Session()
 train_writer = tf.summary.FileWriter(_SAVE_PATH, sess.graph)
 
-
 try:
     print("\nTrying to restore last checkpoint ...")
     last_chk_path = tf.train.latest_checkpoint(checkpoint_dir=_SAVE_PATH)
@@ -49,19 +56,44 @@ except ValueError:
     print("\nFailed to restore checkpoint. Initializing variables instead.")
     sess.run(tf.global_variables_initializer())
 
+model.var_list = tf.trainable_variables()
+model.allvars = tf.trainable_variables()
 
-def train(epoch):
+
+if not firstRun:
+    model.freezeAllExcept("conv4","layer4")
+
+text_file=None
+
+
+
+def train(epoch, xi,new_loss=None):
     batch_size = int(math.ceil(len(train_x) / _BATCH_SIZE))
     i_global = 0
-
+    current_loss = new_loss
+    opt = model.senoptimizer
+    if firstRun:
+        current_loss = loss
+        opt = model.optimizer
     for s in range(batch_size):
         batch_xs = train_x[s*_BATCH_SIZE: (s+1)*_BATCH_SIZE]
         batch_ys = train_y[s*_BATCH_SIZE: (s+1)*_BATCH_SIZE]
 
+        if not firstRun:
+            batch_xs_List = np.ndarray.tolist(batch_xs)
+            train_x_List = np.ndarray.tolist(train_x[xi])
+            batch_xs_List.append(train_x_List)
+            batch_xs = np.array(batch_xs_List)
+
+            batch_ys_List = np.ndarray.tolist(batch_ys)
+            train_y_List = np.ndarray.tolist(train_y[xi])
+            batch_ys_List.append(train_y_List)
+            batch_ys = np.array(batch_ys_List)
+
         start_time = time()
         i_global, _, batch_loss, batch_acc = sess.run(
-            [global_step, optimizer, loss, accuracy],
-            feed_dict={x: batch_xs, y: batch_ys, learning_rate: lr(epoch)})
+            [global_step, opt, current_loss, accuracy],
+            feed_dict={x: batch_xs, y: batch_ys, learning_rate: model.lr(epoch)})
         duration = time() - start_time
 
         if s % 10 == 0:
@@ -89,7 +121,7 @@ def test_and_save(_global_step, epoch):
         batch_ys = test_y[i:j, :]
         predicted_class[i:j] = sess.run(
             y_pred_cls,
-            feed_dict={x: batch_xs, y: batch_ys, learning_rate: lr(epoch)}
+            feed_dict={x: batch_xs, y: batch_ys, learning_rate: model.lr(epoch)}
         )
         i = j
 
@@ -116,14 +148,30 @@ def test_and_save(_global_step, epoch):
     elif global_accuracy == 0:
         global_accuracy = acc
 
-    print("###########################################################################################################")
+        print("###########################################################################################################")
 
 
 def main():
-    for i in range(_EPOCH):
-        print("\nEpoch: {0}/{1}\n".format((i+1), _EPOCH))
-        train(i)
+    if not firstRun:
+        for xi in range(20):
+            text_file = open(str(xi) + ".txt", "w")
+            loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[xi], labels=y[xi])
+            sum_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
+            new_loss = -1 * (loss2 / sum_loss)
+            model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
+                                                        beta1=0.9,
+                                                        beta2=0.999,
+                                                        epsilon=1e-08).minimize(new_loss, global_step=global_step)
 
+            sess.run(tf.global_variables_initializer())
+            for i in range(_EPOCH):
+                text_file.write("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
+                train(i, xi,new_loss)
+        text_file.close()
+    else:
+        for i in range(_EPOCH):
+            print("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
+            train(i, None)
 
 if __name__ == "__main__":
     main()
