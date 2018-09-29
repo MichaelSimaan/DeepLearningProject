@@ -54,7 +54,7 @@ class Model:
 
         with tf.variable_scope('conv4') as scope:
             # Convolution Layer with 64 filters and a kernel size of 3
-            conv4 = tf.layers.conv2d(conv3, 728, (3, 3), use_bias=False, padding='SAME')
+            conv4 = tf.layers.conv2d(conv3, 728, (3, 3), use_bias=False, padding='SAME', name='layer4')
             conv4 = tf.layers.batch_normalization(conv4, training=True)
             conv4 = tf.nn.relu(conv4)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
