@@ -169,10 +169,8 @@ def main():
         text_file.close()
     else:
         for i in range(_EPOCH):
-            sess.run(tf.global_variables_initializer())
-            for i in range(_EPOCH):
-                print("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
-                train(i, None)
+            print("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
+            train(i, None)
 
 if __name__ == "__main__":
     main()
