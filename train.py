@@ -7,7 +7,7 @@ import math
 from include.data import get_data_set
 from include.model import Model
 
-firstRun = True
+firstRun = False
 model = Model()
 train_x, train_y = get_data_set("train")
 test_x, test_y = get_data_set("test")
@@ -28,14 +28,14 @@ model.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                    beta2=0.999,
                                    epsilon=1e-08).minimize(loss, global_step=global_step)
 
-sum_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
-loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[-1], labels=y[-1])
-new_loss = -1*(loss2/sum_loss)
+# sum_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
+# loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[-1], labels=y[-1])
+# new_loss = -1*(loss2/sum_loss)
 
-model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
-                                   beta1=0.9,
-                                   beta2=0.999,
-                                   epsilon=1e-08).minimize(new_loss, global_step=global_step,)
+# model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
+#                                    beta1=0.9,
+#                                    beta2=0.999,
+#                                    epsilon=1e-08).minimize(new_loss, global_step=global_step,)
 # PREDICTION AND ACCURACY CALCULATION
 correct_prediction = tf.equal(y_pred_cls, tf.argmax(y, axis=1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -67,7 +67,7 @@ text_file=None
 
 
 
-def train(epoch, xi):
+def train(epoch, xi,new_loss=None):
     batch_size = int(math.ceil(len(train_x) / _BATCH_SIZE))
     i_global = 0
     current_loss = new_loss
@@ -156,6 +156,7 @@ def main():
         for xi in range(20):
             text_file = open(str(xi) + ".txt", "w")
             loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[xi], labels=y[xi])
+            sum_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
             new_loss = -1 * (loss2 / sum_loss)
             model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                                         beta1=0.9,
@@ -165,14 +166,12 @@ def main():
             sess.run(tf.global_variables_initializer())
             for i in range(_EPOCH):
                 text_file.write("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
-                train(i, xi)
+                train(i, xi,new_loss)
         text_file.close()
     else:
         for i in range(_EPOCH):
-            sess.run(tf.global_variables_initializer())
-            for i in range(_EPOCH):
-                print("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
-                train(i, None)
+            print("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
+            train(i, None)
 
 if __name__ == "__main__":
     main()
