@@ -74,6 +74,7 @@ def train(epoch, xi,new_loss=None,text_file=None):
         batch_ys = train_y[s*_BATCH_SIZE: (s+1)*_BATCH_SIZE]
 
         if not firstRun:
+
             batch_xs_List = np.ndarray.tolist(batch_xs)
             train_x_List = np.ndarray.tolist(train_x[xi])
             batch_xs_List.insert(0,train_x_List)
@@ -156,7 +157,7 @@ def main():
                                                         beta1=0.9,
                                                         beta2=0.999,
                                                         epsilon=1e-08).minimize(new_loss, global_step=global_step,var_list=model.var_list)
-            model.reset("conv4","layer4")
+            model.reset("conv4","layer4",sess)
             sess.run(tf.global_variables_initializer())
             for i in range(_EPOCH):
                 text_file.write("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH)+"\n")

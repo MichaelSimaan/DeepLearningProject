@@ -86,16 +86,24 @@ class Model:
             learning_rate *= 1e-1
         return learning_rate
 
-    def freeze(self, variable, name):
+    def freeze(self, scope, name):
         tempList = []
-        varname = variable + "/" + name
+        varname = scope + "/" + name
         for var in self.var_list:
             if varname not in var.name:
                 tempList.append(var)
         self.var_list = tempList
 
-    def reset(self, variable, name, session):
-        varname = variable + "/" + name
+    def freeze_all_except(self, scope, name):
+        tempList = []
+        varname = scope + "/" + name
+        for var in self.var_list:
+            if varname in var.name:
+                tempList.append(var)
+        self.var_list = tempList
+
+    def reset(self, scope, name, session):
+        varname = scope + "/" + name
         for var in self.allvars:
             if varname in var.name:
                 session.run(var.initializer)
