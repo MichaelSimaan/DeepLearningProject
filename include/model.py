@@ -31,22 +31,22 @@ class Model:
         with tf.variable_scope('conv1') as scope:
             # Convolution Layer with 64 filters and a kernel size of 5
             conv1 = tf.layers.conv2d(x_image, 64, (3, 3), use_bias=False, padding='SAME', name="layer1", trainable=True)
-            conv1 = tf.layers.batch_normalization(conv1, training=True,name="layer2")
-            conv1 = tf.nn.relu(conv1,name="layer3")
+            conv1 = tf.layers.batch_normalization(conv1, training=True)
+            conv1 = tf.nn.relu(conv1)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
             conv1 = tf.layers.average_pooling2d(conv1, 2, 2)
 
         with tf.variable_scope('conv2') as scope:
             # Convolution Layer with 128 filters and a kernel size of 3
-            conv2 = tf.layers.conv2d(conv1, 128, (3, 3), use_bias=False, padding='SAME',name="layer1")
-            conv2 = tf.layers.batch_normalization(conv2, training=True,name="layer5")
+            conv2 = tf.layers.conv2d(conv1, 128, (3, 3), use_bias=False, padding='SAME',name="layer2")
+            conv2 = tf.layers.batch_normalization(conv2, training=True)
             conv2 = tf.nn.relu(conv2)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
             conv2 = tf.layers.average_pooling2d(conv2, 2, 2)
 
         with tf.variable_scope('conv3') as scope:
             # Convolution Layer with 256 filters and a kernel size of 3
-            conv3 = tf.layers.conv2d(conv2, 256, (3, 3), use_bias=False, padding='SAME')
+            conv3 = tf.layers.conv2d(conv2, 256, (3, 3), use_bias=False, padding='SAME',name="layer3")
             conv3 = tf.layers.batch_normalization(conv3, training=True)
             conv3 = tf.nn.relu(conv3)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
@@ -70,7 +70,7 @@ class Model:
             fc1 = tf.layers.dropout(fc1, rate=dropout)
 
             # Output layer, class prediction
-            softmax = tf.layers.dense(fc1, n_classes,name="last")
+            softmax = tf.layers.dense(fc1, n_classes)
         y_pred_cls = tf.argmax(softmax, axis=1)
         return x, y, softmax, y_pred_cls, global_step, learning_rate
 

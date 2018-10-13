@@ -53,9 +53,9 @@ model.allvars = tf.trainable_variables()
 
 
 if not firstRun:
-    model.freeze("conv2","layer1")
+    model.freeze("conv2","layer2")
     model.freeze("conv1", "layer1")
-    model.freeze("conv3", "layer1")
+    model.freeze("conv3", "layer3")
 
 text_file=None
 
@@ -83,7 +83,6 @@ def train(epoch, xi,new_loss=None,text_file=None):
             train_y_List = np.ndarray.tolist(train_y[xi])
             batch_ys_List.insert(0,train_y_List)
             batch_ys = np.array(batch_ys_List)
-
         start_time = time()
         i_global, _, batch_loss, batch_acc = sess.run(
             [global_step, opt, current_loss, accuracy],
@@ -157,7 +156,7 @@ def main():
                                                         beta1=0.9,
                                                         beta2=0.999,
                                                         epsilon=1e-08).minimize(new_loss, global_step=global_step,var_list=model.var_list)
-
+            model.reset("conv4","layer4")
             sess.run(tf.global_variables_initializer())
             for i in range(_EPOCH):
                 text_file.write("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH)+"\n")
