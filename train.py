@@ -16,7 +16,7 @@ global_accuracy = 0
 
 
 # PARAMS
-_BATCH_SIZE = 256
+_BATCH_SIZE = 255
 _EPOCH = 60
 _SAVE_PATH = "./tensorboard/cifar-10-v1.0.0/"
 
@@ -28,14 +28,6 @@ model.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                    beta2=0.999,
                                    epsilon=1e-08).minimize(loss, global_step=global_step)
 
-# sum_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
-# loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[-1], labels=y[-1])
-# new_loss = -1*(loss2/sum_loss)
-
-# model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
-#                                    beta1=0.9,
-#                                    beta2=0.999,
-#                                    epsilon=1e-08).minimize(new_loss, global_step=global_step,)
 # PREDICTION AND ACCURACY CALCULATION
 correct_prediction = tf.equal(y_pred_cls, tf.argmax(y, axis=1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -61,13 +53,15 @@ model.allvars = tf.trainable_variables()
 
 
 if not firstRun:
-    model.freezeAllExcept("conv4","layer4")
+    model.freeze("conv2","layer1")
+    model.freeze("conv1", "layer1")
+    model.freeze("conv3", "layer1")
 
 text_file=None
 
 
 
-def train(epoch, xi,new_loss=None):
+def train(epoch, xi,new_loss=None,text_file=None):
     batch_size = int(math.ceil(len(train_x) / _BATCH_SIZE))
     i_global = 0
     current_loss = new_loss
@@ -82,12 +76,12 @@ def train(epoch, xi,new_loss=None):
         if not firstRun:
             batch_xs_List = np.ndarray.tolist(batch_xs)
             train_x_List = np.ndarray.tolist(train_x[xi])
-            batch_xs_List.append(train_x_List)
+            batch_xs_List.insert(0,train_x_List)
             batch_xs = np.array(batch_xs_List)
 
             batch_ys_List = np.ndarray.tolist(batch_ys)
             train_y_List = np.ndarray.tolist(train_y[xi])
-            batch_ys_List.append(train_y_List)
+            batch_ys_List.insert(0,train_y_List)
             batch_ys = np.array(batch_ys_List)
 
         start_time = time()
@@ -105,11 +99,11 @@ def train(epoch, xi,new_loss=None):
 
             msg = "Global step: {:>5} - [{}] {:>3}% - acc: {:.4f} - loss: {:.4f} - {:.1f} sample/sec"
             print(msg.format(i_global, bar, percentage, batch_acc, batch_loss, _BATCH_SIZE / duration))
+            text_file.write(msg.format(i_global, bar, percentage, batch_acc, batch_loss, _BATCH_SIZE / duration) +"\n")
+    test_and_save(i_global, epoch,text_file)
 
-    test_and_save(i_global, epoch)
 
-
-def test_and_save(_global_step, epoch):
+def test_and_save(_global_step, epoch,text_file):
     global global_accuracy
 
     i = 0
@@ -131,47 +125,50 @@ def test_and_save(_global_step, epoch):
 
     mes = "\nEpoch {} - accuracy: {:.2f}% ({}/{}). Global max accuracy is {:.2f}%"
     print(mes.format((epoch+1), acc, correct_numbers, len(test_x), global_accuracy))
-
+    text_file.write(mes.format((epoch+1), acc, correct_numbers, len(test_x), global_accuracy) +"\n")
     if global_accuracy != 0 and global_accuracy < acc:
 
         summary = tf.Summary(value=[
             tf.Summary.Value(tag="Accuracy/test", simple_value=acc),
         ])
         train_writer.add_summary(summary, _global_step)
-
-        saver.save(sess, save_path=_SAVE_PATH, global_step=_global_step)
+        if firstRun:
+            saver.save(sess, save_path=_SAVE_PATH, global_step=_global_step)
 
         mes = "This epoch receive better accuracy: {:.2f} > {:.2f}. Saving session..."
         print(mes.format(acc, global_accuracy))
+        text_file.write(mes.format(acc, global_accuracy) + "\n")
         global_accuracy = acc
 
     elif global_accuracy == 0:
         global_accuracy = acc
 
         print("###########################################################################################################")
-
+        text_file.write("###########################################################################################################" + "\n")
 
 def main():
     if not firstRun:
-        for xi in range(20):
+        for xi in range(len(train_x)):
             text_file = open(str(xi) + ".txt", "w")
             loss2 = tf.nn.softmax_cross_entropy_with_logits_v2(logits=output[xi], labels=y[xi])
             sum_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=output, labels=y))
-            new_loss = -1 * (loss2 / sum_loss)
+            new_loss = -1*(loss2 / sum_loss)
             model.senoptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,
                                                         beta1=0.9,
                                                         beta2=0.999,
-                                                        epsilon=1e-08).minimize(new_loss, global_step=global_step)
+                                                        epsilon=1e-08).minimize(new_loss, global_step=global_step,var_list=model.var_list)
 
             sess.run(tf.global_variables_initializer())
             for i in range(_EPOCH):
-                text_file.write("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
-                train(i, xi,new_loss)
+                text_file.write("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH)+"\n")
+                train(i, xi,new_loss,text_file)
         text_file.close()
     else:
         for i in range(_EPOCH):
+            text_file = open("firstrun.txt", "w")
             print("\nEpoch: {0}/{1}\n".format((i + 1), _EPOCH))
-            train(i, None)
+            train(i, None,loss,text_file)
+            text_file.close()
 
 if __name__ == "__main__":
     main()

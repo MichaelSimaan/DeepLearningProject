@@ -29,23 +29,23 @@ class Model:
             learning_rate = tf.placeholder(tf.float32, shape=[], name='learning_rate')
 
         with tf.variable_scope('conv1') as scope:
-            # Convolution Layer with 32 filters and a kernel size of 5
+            # Convolution Layer with 64 filters and a kernel size of 5
             conv1 = tf.layers.conv2d(x_image, 64, (3, 3), use_bias=False, padding='SAME', name="layer1", trainable=True)
             conv1 = tf.layers.batch_normalization(conv1, training=True,name="layer2")
             conv1 = tf.nn.relu(conv1,name="layer3")
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
-            conv1 = tf.layers.average_pooling2d(conv1, 2, 2, name="layer4")
+            conv1 = tf.layers.average_pooling2d(conv1, 2, 2)
 
         with tf.variable_scope('conv2') as scope:
-            # Convolution Layer with 64 filters and a kernel size of 3
-            conv2 = tf.layers.conv2d(conv1, 128, (3, 3), use_bias=False, padding='SAME',name="layer4")
+            # Convolution Layer with 128 filters and a kernel size of 3
+            conv2 = tf.layers.conv2d(conv1, 128, (3, 3), use_bias=False, padding='SAME',name="layer1")
             conv2 = tf.layers.batch_normalization(conv2, training=True,name="layer5")
             conv2 = tf.nn.relu(conv2)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
             conv2 = tf.layers.average_pooling2d(conv2, 2, 2)
 
         with tf.variable_scope('conv3') as scope:
-            # Convolution Layer with 64 filters and a kernel size of 3
+            # Convolution Layer with 256 filters and a kernel size of 3
             conv3 = tf.layers.conv2d(conv2, 256, (3, 3), use_bias=False, padding='SAME')
             conv3 = tf.layers.batch_normalization(conv3, training=True)
             conv3 = tf.nn.relu(conv3)
@@ -53,7 +53,7 @@ class Model:
             conv3 = tf.layers.average_pooling2d(conv3, 2, 2)
 
         with tf.variable_scope('conv4') as scope:
-            # Convolution Layer with 64 filters and a kernel size of 3
+            # Convolution Layer with 728 filters and a kernel size of 3
             conv4 = tf.layers.conv2d(conv3, 728, (3, 3), use_bias=False, padding='SAME', name='layer4')
             conv4 = tf.layers.batch_normalization(conv4, training=True)
             conv4 = tf.nn.relu(conv4)
@@ -91,14 +91,6 @@ class Model:
         varname = variable + "/" + name
         for var in self.var_list:
             if varname not in var.name:
-                tempList.append(var)
-        self.var_list = tempList
-
-    def freezeAllExcept(self, variable, name):
-        tempList = []
-        varname = variable + "/" + name
-        for var in self.var_list:
-            if varname in var.name:
                 tempList.append(var)
         self.var_list = tempList
 
